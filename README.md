@@ -1,6 +1,8 @@
 # Clean Census MSA-level Homeownership and Vacancy Rate Data
 
-This file cleans Homeownership Rate and Rental Vacancy Rate data by MSA from the Census Housing Vacancies and Homeownership (CPS/HVS) statistics. The raw text files are not easy to manipulate, and are in an unusable format for MSA-by-MSA time series analysis (i.e. as panel data).  
+This file cleans Homeownership Rate and Rental Vacancy Rate data by MSA from the Census Housing Vacancies and Homeownership (CPS/HVS) statistics. The raw text files are not easy to manipulate, and are in an unusable format for MSA-by-MSA time series analysis. This code cleans and formats, leaving the data in long-form for ease of use as panel data. Note that the code can be modified to clean Homeowner Vacancy rates, or to clean the state-level data. Both of these are also available at the Census website.
+
+Comments and suggestions most welcome.  
 
 # Getting Started
 
