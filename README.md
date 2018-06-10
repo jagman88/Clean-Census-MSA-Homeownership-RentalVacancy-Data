@@ -27,9 +27,9 @@ The script requires 'Python' along with the 'pandas' and 'requests' libraries.
 # Running the code
 
 The code can be run directly from the command line via:
-'''
+```
 python Census_MSA_Homeownership_RentalVacancies.py
-'''
+```
 
 # Author
 
