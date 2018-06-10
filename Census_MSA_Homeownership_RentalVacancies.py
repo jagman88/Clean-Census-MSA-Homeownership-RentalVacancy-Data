@@ -1,16 +1,18 @@
 #--------------------------------------
 #
-#   This file cleans Homeownership Rate and Rental Vacancy Rate data by MSA from the Census
+#   This file cleans Homeownership Rate, Rental Vacancy Rate, and Homeowner Vacancy Rate data by MSA from the Census
 #   Housing Vacancies and Homeownership (CPS/HVS) statistics: https://www.census.gov/housing/hvs/data/rates.html
 #
-#   The code produces two .csv files with data for:
+#   The code produces three .csv files with data for:
 #       - Homeownership (rate)
 #       - Rental Vacancy (rate)
+#       - Homeowner Vacancy (rate)
 #
 #   Data are available quarterly from 2005:Q1-2018:Q1 (can be updated with data from the website above).
 #
 #--------------------------------------
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -19,7 +21,9 @@ import requests
 
 census_url = 'https://www.census.gov/housing/hvs/data/rates/'
 
-excelnames = ['tab4a_msa_05_2014_rvr', 'tab4_msa_15_18_rvr', 'tab6a_msa_05_2014_hmr', 'tab6_msa_15_18_hmr']
+excelnames = ['tab4a_msa_05_2014_rvr', 'tab4_msa_15_18_rvr',
+              'tab6a_msa_05_2014_hmr', 'tab6_msa_15_18_hmr',
+              'tab5a_msa_05_2014_hvr', 'tab5_msa_15_18_hvr']
 
 quarters = ['Q1', 'Q2', 'Q3', 'Q4']
 
@@ -145,3 +149,64 @@ df_rvr = df_rvr.sort_values(['MSA_Name', 'Year', 'Quarter'])
 
 # Save to CSV
 df_rvr.to_csv('Census_RentalVacancyRate.csv', index=False)
+
+
+#------------------------------------------------------
+# Import, clean, format, and save the Homeownership Rate data
+
+# Get first Homeownership rate table: 2005-2014
+csvname = 'tab6a_msa_05_2014_hmr.csv'
+value_name = 'HomeOwnershipRate'
+yearlist = list(range(2005, 2015))
+yearlist = list(reversed(yearlist))
+
+df_hmr_05_14 = get_clean_data(csvname)
+df_hmr_05_14 = get_formatted_table(df_hmr_05_14, yearlist, value_name)
+
+
+# Get second Homeownership rate table: 2015-2018
+csvname = 'tab6_msa_15_18_hmr.csv'
+value_name = 'HomeOwnershipRate'
+yearlist = list(range(2015, 2019))
+yearlist = list(reversed(yearlist))
+
+df_hmr_15_18 = get_clean_data(csvname)
+df_hmr_15_18 = get_formatted_table(df_hmr_15_18, yearlist, value_name)
+
+
+# Merge the two data tables
+df_hmr = df_hmr_05_14.append(df_hmr_15_18)
+df_hmr = df_hmr.sort_values(['MSA_Name', 'Year', 'Quarter'])
+
+# Save to CSV
+df_hmr.to_csv('Census_HomeownershipRate.csv', index=False)
+
+#------------------------------------------------------
+# Import, clean, format, and save the Homeowner Vacancy Rate data
+
+# Get first HVR table: 2005-2014
+csvname = 'tab5a_msa_05_2014_hvr.csv'
+value_name = 'HomeownerVacancyRate'
+yearlist = list(range(2005, 2015))
+yearlist = list(reversed(yearlist))
+
+df_hvr_05_14 = get_clean_data(csvname)
+df_hvr_05_14 = get_formatted_table(df_hvr_05_14, yearlist, value_name)
+
+
+# Get second HVR table: 2015-2018
+csvname = 'tab5_msa_15_18_hvr.csv'
+value_name = 'HomeownerVacancyRate'
+yearlist = list(range(2015, 2019))
+yearlist = list(reversed(yearlist))
+
+df_hvr_15_18 = get_clean_data(csvname)
+df_hvr_15_18 = get_formatted_table(df_hvr_15_18, yearlist, value_name)
+
+
+# Merge the two data tables
+df_hvr = df_hvr_05_14.append(df_hvr_15_18)
+df_hvr = df_hvr.sort_values(['MSA_Name', 'Year', 'Quarter'])
+
+# Save to CSV
+df_rvr.to_csv('Census_HomeownerVacancyRate.csv', index=False)
