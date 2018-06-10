@@ -18,6 +18,7 @@ import requests
 
 #------------------------------------------------------
 # Set-up
+#------------------------------------------------------
 
 census_url = 'https://www.census.gov/housing/hvs/data/rates/'
 
@@ -27,8 +28,17 @@ excelnames = ['tab4a_msa_05_2014_rvr', 'tab4_msa_15_18_rvr',
 
 quarters = ['Q1', 'Q2', 'Q3', 'Q4']
 
+# MSA names changed between the two data sets.
+# This option allows you to convert the old MSA names to new MSA names, or vice versa.
+# use_new = -1 (Convert new to old names),
+#            0 (Do not convert names),
+#            1 (Convert old to new names)
+use_new = 1
+
 #------------------------------------------------------
 # Download and save XLSX files from Census website into current directory
+#------------------------------------------------------
+
 for xx in excelnames:
     dls = census_url+xx+'.xlsx'
     resp = requests.get(dls)
@@ -44,6 +54,7 @@ for xx in excelnames:
 
 #------------------------------------------------------
 # Functions to clean and format the data tables
+#------------------------------------------------------
 
 def get_clean_data(csvname):
 
@@ -91,7 +102,47 @@ def get_formatted_table(df_tmp, yearlist, value_name):
     return df_tmp
 
 #------------------------------------------------------
+# New-to-old (or, Old-to-new) names for conversion
+#------------------------------------------------------
+
+# Key: New Name, Value: Old Name
+new_to_old = {'Atlanta-Sandy Springs-Roswell, GA': 'Atlanta-Sandy Springs-Marietta, GA',
+              'Baltimore-Columbia-Towson, MD': 'Baltimore-Towson, MD',
+              'Boston-Cambridge-Newton, MA-NH': 'Boston-Cambridge-Quincy, MA-NH',
+              'Buffalo-Cheektowaga-Niagara Falls, NY': 'Buffalo-Cheektowaga-Tonawanda, NY',
+              'Charlotte-Concord-Gastonia, NC-SC': 'Charlotte-Gastonia-Concord, NC-SC',
+              'Chicago-Naperville-Elgin, IL-IN-WI': 'Chicago-Naperville-Joliet, IL',
+              'Cincinnati, OH-KY-IN': 'Cincinnati-Middletown, OH-KY-IN',
+              'Cleveland-Elyria, OH': 'Cleveland-Elyria-Mentor, OH',
+              'Denver-Aurora-Lakewood, CO': 'Denver-Aurora, CO',
+              'Detroit-Warren-Dearborn, MI': 'Detroit-Warren-Livonia, MI',
+              'Houston-The Woodlands-Sugar Land, TX': 'Houston-Baytown-Sugar Land, TX',
+              'Indianapolis-Carmel-Anderson, IN': 'Indianapolis, IN',
+              'Las Vegas-Henderson-Paradise, NV': 'Las Vegas-Paradise, NV',
+              'Los Angeles-Long Beach-Anaheim, CA': 'Los Angeles-Long Beach-Santa Ana, CA',
+              'Louisville/Jefferson County, KY-IN': 'Louisville, KY-IN',
+              'Miami-Fort Lauderdale-West Palm Beach, FL': 'Miami-Fort Lauderdale-Miami Beach, FL',
+              'Nashville-Davidson-Murfreesboro-Franklin, TN': 'Nashville-Davidson-Murfreesboro, TN',
+              'New Orleans-Metairie, LA': 'New Orleans-Metairie-Kenner, LA',
+              'New York-Newark-Jersey City, NY-NJ-PA': 'New York-Northern New Jersey--Long Island, NY',
+              'Orlando-Kissimmee-Sanford, FL': 'Orlando, FL',
+              'Philadelphia-Camden-Wilmington, PA-NJ-DE-MD': 'Philadelphia-Camden-Wilmington, PA',
+              'Portland-Vancouver-Hillsboro, OR-WA': 'Portland-Vancouver-Beaverton, OR-WA',
+              'Providence-Warwick, RI-MA': 'Providence-New Bedford-Fall River, RI-MA',
+              'Raleigh, NC': 'Raleigh-Cary, NC',
+              'Sacramento-Roseville-Arden-Arcade, CA': 'Sacramento-Arden-Arcade-Roseville, CA',
+              'San Antonio-New Braunfels, TX': 'San Antonio, TX',
+              'San Diego-Carlsbad, CA': 'San Diego-Carlsbad-San Marco, CA',
+              'San Francisco-Oakland-Hayward, CA': 'San Francisco-Oakland-Fremont, CA',
+              'Urban Honolulu, HI': 'Honolulu, HI',
+              'Virginia Beach-Norfolk-Newport News, VA-NC': 'Virginia Beach-Norfolk-Newport News, VA'}
+
+# Key: Old Name, Value: New Name
+old_to_new = {v: k for k, v in new_to_old.items()}
+
+#------------------------------------------------------
 # Import, clean, format, and save the Homeownership Rate data
+#------------------------------------------------------
 
 # Get first Homeownership rate table: 2005-2014
 csvname = 'tab6a_msa_05_2014_hmr.csv'
@@ -112,6 +163,18 @@ yearlist = list(reversed(yearlist))
 df_hmr_15_18 = get_clean_data(csvname)
 df_hmr_15_18 = get_formatted_table(df_hmr_15_18, yearlist, value_name)
 
+# Modify MSA names
+if (use_new==-1):
+    # Rename all new names in df_rvr_15_18 with the old names
+    for new_name in list(new_to_old.keys()):
+        old_name = old_to_new[new_name]
+        df_hmr_15_18.loc[df_hmr_15_18['MSA_Name']==new_name, 'MSA_Name'] = old_name
+elif (use_new==1):
+    # Rename all old names in df_hmr_05_14 with the new names
+    for old_name in list(old_to_new.keys()):
+        new_name = old_to_new[old_name]
+        df_hmr_05_14.loc[df_hmr_05_14['MSA_Name']==old_name, 'MSA_Name'] = new_name
+
 
 # Merge the two data tables
 df_hmr = df_hmr_05_14.append(df_hmr_15_18)
@@ -122,6 +185,7 @@ df_hmr.to_csv('Census_HomeownershipRate.csv', index=False)
 
 #------------------------------------------------------
 # Import, clean, format, and save the Rental Vacancy Rate data
+#------------------------------------------------------
 
 # Get first RVR table: 2005-2014
 csvname = 'tab4a_msa_05_2014_rvr.csv'
@@ -142,6 +206,19 @@ yearlist = list(reversed(yearlist))
 df_rvr_15_18 = get_clean_data(csvname)
 df_rvr_15_18 = get_formatted_table(df_rvr_15_18, yearlist, value_name)
 
+# Modify MSA names
+if (use_new==-1):
+    # Rename all new names in df_rvr_15_18 with the old names
+    for new_name in list(new_to_old.keys()):
+        old_name = old_to_new[new_name]
+        df_rvr_15_18.loc[df_rvr_15_18['MSA_Name']==new_name, 'MSA_Name'] = old_name
+elif (use_new==1):
+    # Rename all old names in df_rvr_05_14 with the new names
+    for old_name in list(old_to_new.keys()):
+        new_name = old_to_new[old_name]
+        df_rvr_05_14.loc[df_rvr_05_14['MSA_Name']==old_name, 'MSA_Name'] = new_name
+
+
 
 # Merge the two data tables
 df_rvr = df_rvr_05_14.append(df_rvr_15_18)
@@ -150,39 +227,9 @@ df_rvr = df_rvr.sort_values(['MSA_Name', 'Year', 'Quarter'])
 # Save to CSV
 df_rvr.to_csv('Census_RentalVacancyRate.csv', index=False)
 
-
-#------------------------------------------------------
-# Import, clean, format, and save the Homeownership Rate data
-
-# Get first Homeownership rate table: 2005-2014
-csvname = 'tab6a_msa_05_2014_hmr.csv'
-value_name = 'HomeOwnershipRate'
-yearlist = list(range(2005, 2015))
-yearlist = list(reversed(yearlist))
-
-df_hmr_05_14 = get_clean_data(csvname)
-df_hmr_05_14 = get_formatted_table(df_hmr_05_14, yearlist, value_name)
-
-
-# Get second Homeownership rate table: 2015-2018
-csvname = 'tab6_msa_15_18_hmr.csv'
-value_name = 'HomeOwnershipRate'
-yearlist = list(range(2015, 2019))
-yearlist = list(reversed(yearlist))
-
-df_hmr_15_18 = get_clean_data(csvname)
-df_hmr_15_18 = get_formatted_table(df_hmr_15_18, yearlist, value_name)
-
-
-# Merge the two data tables
-df_hmr = df_hmr_05_14.append(df_hmr_15_18)
-df_hmr = df_hmr.sort_values(['MSA_Name', 'Year', 'Quarter'])
-
-# Save to CSV
-df_hmr.to_csv('Census_HomeownershipRate.csv', index=False)
-
 #------------------------------------------------------
 # Import, clean, format, and save the Homeowner Vacancy Rate data
+#------------------------------------------------------
 
 # Get first HVR table: 2005-2014
 csvname = 'tab5a_msa_05_2014_hvr.csv'
@@ -202,6 +249,18 @@ yearlist = list(reversed(yearlist))
 
 df_hvr_15_18 = get_clean_data(csvname)
 df_hvr_15_18 = get_formatted_table(df_hvr_15_18, yearlist, value_name)
+
+# Modify MSA names
+if (use_new==-1):
+    # Rename all new names in df_hvr_15_18 with the old names
+    for new_name in list(new_to_old.keys()):
+        old_name = old_to_new[new_name]
+        df_hvr_15_18.loc[df_hvr_15_18['MSA_Name']==new_name, 'MSA_Name'] = old_name
+elif (use_new==1):
+    # Rename all old names in df_hvr_05_14 with the new names
+    for old_name in list(old_to_new.keys()):
+        new_name = old_to_new[old_name]
+        df_hvr_05_14.loc[df_hvr_05_14['MSA_Name']==old_name, 'MSA_Name'] = new_name
 
 
 # Merge the two data tables
